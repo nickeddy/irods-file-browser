@@ -51,7 +51,7 @@ class IRODSAuthApplication(QWidget):
 
         # cd up button
         self.cd_up_btn = QPushButton()
-        self.cd_up_btn.setIcon(QIcon('/home/neddy/images/cdtoparent.png'))
+        self.cd_up_btn.setIcon(QIcon(':/images/cdtoparent.png'))
         self.cd_up_btn.clicked.connect(self.cd_to_parent)
         self.cd_up_btn.setGeometry(30, 30, 30, 30)
         self.cd_up_btn.hide()
@@ -125,14 +125,14 @@ class IRODSAuthApplication(QWidget):
                 for subcoll in coll.subcollections:
                     new_dir = QTreeWidgetItem(self.tree_widget)
                     new_dir.setText(0, subcoll.path.split('/')[len(subcoll.path.split('/'))-1])
-                    new_dir.setIcon(0, QIcon('/home/neddy/images/dir.png'))
+                    new_dir.setIcon(0, QIcon(':/images/dir.png'))
                     self.tree_widget.insertTopLevelItem(0, new_dir)
                 for obj in coll.data_objects:
                     new_obj = QTreeWidgetItem(self.tree_widget)
                     new_obj.setText(0, obj.name)
                     new_obj.setText(1, str(obj.modify_time))
                     new_obj.setText(2, str(obj.size))
-                    new_obj.setIcon(0, QIcon('/home/neddy/images/file.png'))
+                    new_obj.setIcon(0, QIcon(':/images/file.png'))
                     self.tree_widget.insertTopLevelItem(0, new_obj)
         else:
             self.current_path_lbl.setText(self.current_path)
@@ -141,14 +141,14 @@ class IRODSAuthApplication(QWidget):
             for subcoll in coll.subcollections:
                 new_dir = QTreeWidgetItem(self.tree_widget)
                 new_dir.setText(0, subcoll.path.split('/')[len(subcoll.path.split('/'))-1])
-                new_dir.setIcon(0, QIcon('/home/neddy/images/dir.png'))
+                new_dir.setIcon(0, QIcon(':/images/dir.png'))
                 self.tree_widget.insertTopLevelItem(0, new_dir)
             for obj in coll.data_objects:
                 new_obj = QTreeWidgetItem(self.tree_widget)
                 new_obj.setText(0, obj.name)
                 new_obj.setText(1, str(obj.modify_time))
                 new_obj.setText(2, str(obj.size))
-                new_obj.setIcon(0, QIcon('/home/neddy/images/file.png'))
+                new_obj.setIcon(0, QIcon(':/images/file.png'))
                 self.tree_widget.insertTopLevelItem(0, new_obj)
 
     def is_directory(self, item):
