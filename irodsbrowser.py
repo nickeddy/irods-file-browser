@@ -161,7 +161,7 @@ class IRODSAuthApplication(QWidget):
                 self.current_path = self.current_path + path
                 path = self.current_path + path
         try:
-            self.irods_session.collections.get(self.current_path)
+            self.irods_session.collections.get(self.current_path) # optimize here, return the collection if found instead of true, fix in process item
             return True
         except irods.exception.CollectionDoesNotExist:
             self.current_path = tmp

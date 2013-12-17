@@ -3,9 +3,7 @@ from cx_Freeze import setup, Executable
 
 include_files = ['images/dir.png', 'images/file.png', 'images/cdtoparent.png']
 build_exe_options = {
-    'packages': [],#'sys', 'PySide.QtCore', 'PySide.QtGui', 'irods', 'irods.session'],
     'excludes': ['Tkinter', 'Tkconstants', 'tcl'],
-    #'build_exe': 'build',
     'include_files': include_files
 }
 
