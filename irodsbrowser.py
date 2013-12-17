@@ -117,6 +117,7 @@ class IRODSAuthApplication(QWidget):
     def process_item(self, item, cd=False):
         if not cd:
             if self.is_directory(item):
+                self.setCursor(Qt.WaitCursor)
                 self.cd_up_btn.setEnabled(True)
                 self.current_path_lbl.setText(self.current_path)
                 self.tree_widget.clear()
@@ -134,6 +135,7 @@ class IRODSAuthApplication(QWidget):
                     new_obj.setIcon(0, QIcon('./images/file.png'))
                     self.tree_widget.insertTopLevelItem(0, new_obj)
         else:
+            self.setCursor(Qt.WaitCursor)
             self.current_path_lbl.setText(self.current_path)
             self.tree_widget.clear()
             coll = self.irods_session.collections.get(self.current_path)
@@ -149,6 +151,7 @@ class IRODSAuthApplication(QWidget):
                 new_obj.setText(2, str(obj.size))
                 new_obj.setIcon(0, QIcon('./images/file.png'))
                 self.tree_widget.insertTopLevelItem(0, new_obj)
+        self.setCursor(Qt.ArrowCursor)
 
     def is_directory(self, item):
         path = item.text(0).encode('ascii', 'xmlcharrefreplace')
