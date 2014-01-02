@@ -3,6 +3,7 @@ from cx_Freeze import setup, Executable
 
 include_files = ['images/dir.png', 'images/file.png', 'images/cdtoparent.png']
 build_exe_options = {
+    'packages': [],
     'excludes': ['Tkinter', 'Tkconstants', 'tcl'],
     'include_files': include_files
 }
