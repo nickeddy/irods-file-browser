@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import os
+import irods
 from PySide.QtCore import *
 from PySide.QtGui import *
-import irods
 from irods.session import iRODSSession
 
 qt_app = QApplication(sys.argv)
@@ -12,12 +13,13 @@ class IRODSAuthApplication(QWidget):
 
     def __init__(self):
         super(IRODSAuthApplication, self).__init__()
-
+        fontdb = QFontDatabase()
+        fontdb.addApplicationFont('./fonts/FontAwesome.otf')
         self.current_path = ''
         self.setWindowTitle('iRODS Browser')
         self.irods_session = None
         # username inputs
-        self.username_lbl = QLabel('Username:', self)
+        self.username_lbl = QLabel(u'Username:', self)
         self.username_txt = QLineEdit(self)
         self.error_msg = QErrorMessage(self)
         # password inputs
@@ -52,12 +54,25 @@ class IRODSAuthApplication(QWidget):
         self.tree_widget.hide()
 
         # cd up button
-        self.cd_up_btn = QPushButton()
-        self.cd_up_btn.setIcon(QIcon('./images/cdtoparent.png'))
+        self.top_button_box = QDialogButtonBox()
+        self.cd_up_btn = QPushButton(u'')
+        self.cd_up_btn.setFont(QFont('FontAwesome', 12))
+        self.cd_up_btn.sizeHint = lambda: QSize(30,30)
         self.cd_up_btn.clicked.connect(self.cd_to_parent)
-        self.cd_up_btn.setGeometry(30, 30, 30, 30)
-        self.cd_up_btn.hide()
         self.current_path_lbl.setBuddy(self.cd_up_btn)
+        self.download_btn = QPushButton(u'')
+        self.download_btn.setFont(QFont('FontAwesome', 12))
+        self.download_btn.sizeHint = lambda: QSize(30,30)
+        self.upload_btn = QPushButton(u'')
+        self.upload_btn.setFont(QFont('FontAwesome', 12))
+        self.upload_btn.sizeHint = lambda: QSize(30,30)
+        self.upload_btn.clicked.connect(self.upload)
+        self.rename_btn = QPushButton('Rename')
+        self.rename_btn.setMinimumHeight(30)
+        self.top_button_box.addButton(self.cd_up_btn, QDialogButtonBox.ActionRole)
+        self.top_button_box.addButton(self.download_btn, QDialogButtonBox.ActionRole)
+        self.top_button_box.addButton(self.upload_btn, QDialogButtonBox.ActionRole)
+        self.top_button_box.addButton(self.rename_btn, QDialogButtonBox.ActionRole)
 
         # layouts
         self.login_layout = QFormLayout()
@@ -72,7 +87,7 @@ class IRODSAuthApplication(QWidget):
 
         self.info_layout = QHBoxLayout()
         self.info_layout.addWidget(self.current_path_lbl)
-        self.info_layout.addWidget(self.cd_up_btn)
+        self.info_layout.addWidget(self.top_button_box)
         self.info_widget = QWidget()
         self.info_widget.setLayout(self.info_layout)
         self.info_widget.hide()
@@ -103,7 +118,6 @@ class IRODSAuthApplication(QWidget):
             self.current_path_lbl.setText(self.current_path)
             self.current_path_lbl.show()
             self.tree_widget.show()
-            self.cd_up_btn.show()
             self.info_widget.show()
             self.login_widget.hide()
             parent_item = QTreeWidgetItem([parent.path])
@@ -115,6 +129,35 @@ class IRODSAuthApplication(QWidget):
             self.error_msg.showMessage('User invalid. Please try again.')
         except:
             self.error_msg.showMessage('Error logging in. Please try again.')
+
+    def upload(self):
+        file_path = QFileDialog().getOpenFileName(self, "Upload File", "~")
+        f = file_path[0].split(os.sep)[len(file_path[0].split(os.sep)) - 1]
+        irods_path = os.path.join(self.current_path, f).encode('ascii', 'xmlcharrefreplace')
+        # see if file already exists in current irods directory
+        coll = self.irods_session.collections.get(self.current_path.encode('ascii', 'xmlcharrefreplace'))
+        file_exists = False
+        for data_obj in coll.data_objects:
+            if data_obj.name == f:
+                file_exists = True
+                # print error here, or confirm overwrite dialog
+        if not file_exists:
+            obj = self.irods_session.data_objects.create(irods_path)
+            with obj.open('r+') as f_in:
+                for line in open(file_path[0], 'r'):
+                    f_in.write(line)
+                f_in.seek(0,0)
+                for line in f_in:
+                    print(line)
+            new_obj = QTreeWidgetItem(self.tree_widget)
+            new_obj.setText(0, obj.name)
+            new_obj.setText(1, str(obj.modify_time))
+            new_obj.setText(2, str(obj.size))
+            new_obj.setIcon(0, QIcon('./images/file.png'))
+            self.tree_widget.insertTopLevelItem(0, new_obj)
+
+    def download(self, file):
+        pass
 
     def process_item(self, item, cd=False):
         if not cd:
