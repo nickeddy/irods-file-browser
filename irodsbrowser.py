@@ -63,11 +63,13 @@ class IRODSAuthApplication(QWidget):
         self.download_btn = QPushButton(u'')
         self.download_btn.setFont(QFont('FontAwesome', 12))
         self.download_btn.sizeHint = lambda: QSize(30,30)
+        self.download_btn.clicked.connect(self.download)
         self.upload_btn = QPushButton(u'')
         self.upload_btn.setFont(QFont('FontAwesome', 12))
         self.upload_btn.sizeHint = lambda: QSize(30,30)
         self.upload_btn.clicked.connect(self.upload)
         self.rename_btn = QPushButton('Rename')
+        self.rename_btn.clicked.connect(self.rename)
         self.rename_btn.setMinimumHeight(30)
         self.top_button_box.addButton(self.cd_up_btn, QDialogButtonBox.ActionRole)
         self.top_button_box.addButton(self.download_btn, QDialogButtonBox.ActionRole)
@@ -121,7 +123,7 @@ class IRODSAuthApplication(QWidget):
             self.info_widget.show()
             self.login_widget.hide()
             parent_item = QTreeWidgetItem([parent.path])
-            self.process_item(parent_item)
+            self.process_item(parent_item, True)
             self.resize(600, 400)
         except irods.exception.CAT_INVALID_AUTHENTICATION:
             self.error_msg.showMessage('Password invalid. Please try again.')
@@ -140,15 +142,13 @@ class IRODSAuthApplication(QWidget):
         for data_obj in coll.data_objects:
             if data_obj.name == f:
                 file_exists = True
-                # print error here, or confirm overwrite dialog
-        if not file_exists:
+                # TODO print error here, or confirm overwrite dialog
+        if not file_exists and f:
             obj = self.irods_session.data_objects.create(irods_path)
             with obj.open('r+') as f_in:
                 for line in open(file_path[0], 'r'):
                     f_in.write(line)
-                f_in.seek(0,0)
-                for line in f_in:
-                    print(line)
+            obj = self.irods_session.data_objects.get(irods_path)
             new_obj = QTreeWidgetItem(self.tree_widget)
             new_obj.setText(0, obj.name)
             new_obj.setText(1, str(obj.modify_time))
@@ -156,8 +156,26 @@ class IRODSAuthApplication(QWidget):
             new_obj.setIcon(0, QIcon('./images/file.png'))
             self.tree_widget.insertTopLevelItem(0, new_obj)
 
-    def download(self, file):
-        pass
+    def download(self):
+        current_item = self.tree_widget.currentItem()
+        if current_item:
+            path = QFileDialog.getSaveFileName(dir=current_item.text(0))
+            if path[0]:
+                if os.path.exists(path[0]):
+                    pass # TODO alert user file already exists
+                else:
+                    # save file
+                    irods_path = os.path.join(self.current_path, current_item.text(0)).encode('ascii')
+                    obj = self.irods_session.data_objects.get(irods_path)
+                    with open(path[0], 'w') as f_in:
+                        for line in obj.open('r'):
+                            f_in.write(line)
+        else:
+            # TODO alert no item selected.
+            pass
+
+    def rename(self):
+        pass # TODO currently python-irods doesn't support renaming.
 
     def process_item(self, item, cd=False):
         if not cd:
